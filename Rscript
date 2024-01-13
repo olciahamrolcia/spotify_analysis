@@ -1,0 +1,102 @@
+---
+title: "Spotify Data Analysis 2023"
+author: "Aleksandra Hamrol"
+output: html_document
+---
+
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("knitr")
+install.packages("tidyverse")
+
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(readr)
+
+spotify <- read_csv("data/spotify-2023.csv")
+
+# Removing columns
+spotify <- spotify %>% 
+  select(-artist_count, -in_apple_playlists, -in_apple_charts, 
+         -in_deezer_playlists, -in_deezer_charts, -in_shazam_charts,
+         -key, -`valence_%`, -`energy_%`, -`acousticness_%`, -`liveness_%`)
+
+# Type change
+spotify$mode <- as.factor(spotify$mode)
+spotify$streams <- as.integer(spotify$streams)
+
+# Labels for months
+label <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+
+spotify$released_month <- factor(spotify$released_month, labels = label, ordered = TRUE)
+
+#By stream table for artist
+by_stream <- spotify %>%
+  group_by(`artist(s)_name`) %>%
+  summarise(sum_streams = sum(streams, na.rm = TRUE)) %>%
+  arrange(desc(sum_streams))
+
+head(by_stream)
+
+# the most popular artist by stream
+ggplot(head(by_stream), aes(x = `artist(s)_name`, y = sum_streams / 1e6)) + 
+  geom_col(fill = '#1DB954') + 
+  labs(title = 'Most Popular Artists', 
+       x = 'Artist', 
+       y = 'Total Streams in Millions') +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(labels = scales::comma)
+
+# streams by track
+by_track <- spotify %>%
+  group_by(track_name) %>%
+  summarise(total_streams = sum(streams, na.rm = TRUE)) %>%
+  arrange(desc(total_streams))
+
+# Take the top songs for visualization, you can change the number inside head() to display more songs
+top_tracks <- head(by_track, 6)
+
+# the most popular songs
+ggplot(top_tracks, aes(x = reorder(track_name, total_streams), y = total_streams / 1e6)) + 
+  geom_col(fill = '#1DB954') +  # Spotify green color
+  labs(title = 'Most Popular Songs', 
+       x = 'Song title',
+       y = 'Total Streams in Millions') +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(labels = scales::comma)
+
+# Distribution of tracks by release month
+ggplot(spotify, aes(x = released_month)) +
+  geom_bar(fill = '#1DB954') +
+  labs(title = "Distribution of tracks by Release Month",
+       x = "Month",
+       y = "Number of tracks") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.text.x = element_text(angle = 0, hjust = 0.5))
+
+# filter out NA and non-finite values from the dataset
+spotify_clean <- spotify %>%
+  filter(is.finite(`streams`), !is.na(`danceability_%`), is.finite(`danceability_%`))
+
+# Does danceability influence streams?
+ggplot(spotify_clean, aes(x = `danceability_%`, y = streams / 1e6)) +
+  geom_point() +
+  geom_smooth(method = 'lm', color = '#1DB954') +
+  ggtitle('Relationship between streams and danceability') +
+  labs(x = 'Danceability(%)', y = 'Streams in millions') +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.text.x = element_text(angle = 0, hjust = 0.5))
+
+
+# Distribution of BPM - provide insights into the common tempo of popular music in the dataset
+ggplot(spotify, aes(x = bpm)) +
+  geom_histogram(binwidth = 10, fill = '#1DB954', color = "white") +
+  labs(title = "Distribution of BPM (Beats Per Minute)",
+       x = "BPM",
+       y = "Frequency") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.text.x = element_text(angle = 0, hjust = 0.5))
