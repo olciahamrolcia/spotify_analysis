@@ -99,12 +99,20 @@ ggplot(spotify_clean, aes(x = in_spotify_playlists, y = in_spotify_charts)) +
   theme(plot.title = element_text(hjust = 0.5, face = "bold"),
         axis.text.x = element_text(angle = 0, hjust = 0.5))
 
-
 # Distribution of BPM - provide insights into the common tempo of popular music in the dataset
 ggplot(spotify, aes(x = bpm)) +
   geom_histogram(binwidth = 10, fill = '#1DB954', color = "white") +
   labs(title = "Distribution of BPM (Beats Per Minute)",
        x = "BPM",
        y = "Frequency") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.text.x = element_text(angle = 0, hjust = 0.5))
+
+# Create a violin plot to show the distribution of danceability across different levels of chart appearances
+ggplot(spotify, aes(x = in_spotify_charts, y = `danceability_%`)) +
+  geom_violin(trim = FALSE, fill = '#1DB954', color = 'white') +
+  labs(title = 'Danceability distribution across Spotify chart appearances',
+       x = 'Number of Spotify chart appearances',
+       y = 'Danceability (%)') +
   theme(plot.title = element_text(hjust = 0.5, face = "bold"),
         axis.text.x = element_text(angle = 0, hjust = 0.5))
