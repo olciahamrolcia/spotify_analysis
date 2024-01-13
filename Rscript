@@ -91,6 +91,14 @@ ggplot(spotify_clean, aes(x = `danceability_%`, y = streams / 1e6)) +
   theme(plot.title = element_text(hjust = 0.5, face = "bold"),
         axis.text.x = element_text(angle = 0, hjust = 0.5))
 
+# Relationship between inclusion in Spotify playlists and charts
+ggplot(spotify_clean, aes(x = in_spotify_playlists, y = in_spotify_charts)) +
+  geom_point(color = '#1DB954', alpha = 0.7) +
+  ggtitle('Relationship between inclusion in Spotify playlists and charts') +
+  labs(x = 'Number of Spotify playlists', y = 'Number of Spotify charts') +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.text.x = element_text(angle = 0, hjust = 0.5))
+
 
 # Distribution of BPM - provide insights into the common tempo of popular music in the dataset
 ggplot(spotify, aes(x = bpm)) +
